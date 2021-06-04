@@ -23,6 +23,7 @@ module CrOpenCL
       # Tested this in the playground: even though kind holds the type of the array element
       # typeof is needed for this to work. It correctly gets the size of the type
       @length = (hostbuf.nil? ? length : hostbuf.size).to_u64
+      puts @length
       raise CLError.new("Buffer cannot be zero size.") if @length == 0
       @hostbuf = hostbuf
       @size = @length * sizeof(T)
