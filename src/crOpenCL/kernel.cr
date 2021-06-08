@@ -1,5 +1,4 @@
 require "./libOpenCL.cr"
-
 module CrOpenCL
 
   enum KernelParams : Int64
@@ -7,7 +6,6 @@ module CrOpenCL
   end
 
   class Kernel
-
     def initialize(@program : Program, @name : String)
       @kernel = LibOpenCL.clCreateKernel(@program, @name, out err)
       raise CLError.new("clCreateKernel failed.") unless err == LibOpenCL::CL_SUCCESS
@@ -22,8 +20,15 @@ module CrOpenCL
     def set_argument(index : Int32, value)
       if value.responds_to?(:to_unsafe)
         val = value.to_unsafe # Need to do reference counting on this -- otherwise the GC could destroy value before the kernel is run
+        puts "unsafe"
+        puts typeof(value)
         err = LibOpenCL.clSetKernelArg(@kernel, index, sizeof(typeof(val)), pointerof(val))
       else
+        # FIXME: when passing numeric literals, this branch will be run (Int does not define
+        # to_unsafe). Becaues it's possible for the integer to be a part of a union type, 
+        # that will send a garbage value to the kernel
+        puts "safe"
+        puts typeof(value)
         err = LibOpenCL.clSetKernelArg(@kernel, index, sizeof(typeof(value)), pointerof(value))
       end
       raise CLError.new("clSetKernelArg failed.") unless err == LibOpenCL::CL_SUCCESS

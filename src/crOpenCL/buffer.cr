@@ -23,7 +23,7 @@ module CrOpenCL
       # Tested this in the playground: even though kind holds the type of the array element
       # typeof is needed for this to work. It correctly gets the size of the type
       @length = (hostbuf.nil? ? length : hostbuf.size).to_u64
-      puts @length
+      puts typeof(@length)
       raise CLError.new("Buffer cannot be zero size.") if @length == 0
       @hostbuf = hostbuf
       @size = @length * sizeof(T)
@@ -40,10 +40,13 @@ module CrOpenCL
       # Otherwise, it should be NULL (as per OpenCL)
       ewl = ewl_size > 0 ? event_wait_list.map(&.to_unsafe_value).to_unsafe : Pointer(Pointer(Void)).null
       if direction == Transfer::ToHost
+        puts length * sizeof(T)
         err = LibOpenCL.clEnqueueReadBuffer(queue, devbuf, blocking.to_i32, 0, length * sizeof(T), hostbuf, ewl_size, ewl, event)
-        raise CLError.new("clEnqueueWriteBuffer failed.") unless err == LibOpenCL::CL_SUCCESS
+        puts LibOpenCL::Error.new(err)
+        raise CLError.new("clEnqueueReadBuffer failed.") unless err == LibOpenCL::CL_SUCCESS
       else
         err = LibOpenCL.clEnqueueWriteBuffer(queue, devbuf, blocking.to_i32, 0, length * sizeof(T), hostbuf, ewl_size, ewl, event)
+        puts LibOpenCL::Error.new(err)
         raise CLError.new("clEnqueueWriteBuffer failed.") unless err == LibOpenCL::CL_SUCCESS
       end
     end

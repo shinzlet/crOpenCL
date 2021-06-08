@@ -61,10 +61,13 @@ module CrOpenCL
       {% for arg in call.args %}
         set_arg_dim({{ arg }}, %gwgs.size)
       {% end %}
-      %kernel.set_arguments({{ *call.args[4..-1] }})
+
+      {% for idx in (4...call.args.size) %}
+        %kernel.set_argument({{ idx - 4 }}, {{ call.args[idx] }})
+      {% end %}
+
       # Process work group size
       %kernel.enqueue({{ call.args[0] }}, local_work_size:  nil, global_work_size: %gwgs, event: {{ call.args[2] }}, event_wait_list: ({{ call.args[3] }} || Array(Event).new))
     end
-
   end
 end

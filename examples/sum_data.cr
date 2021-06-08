@@ -19,7 +19,7 @@ __kernel void sum(__global int * result, __global int * in1, __global int * in2,
   int idx = get_global_id(0);
   if (idx < len)
   {
-    result[idx] = in1[idx] + in2[idx];
+    result[idx] = len; // in1[idx];
   }
 }
 
