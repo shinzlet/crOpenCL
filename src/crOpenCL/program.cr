@@ -56,12 +56,16 @@ module CrOpenCL
     # - event (Event | Nil)
     # - event_wait_list (Array(Event) | Nil)
     macro method_missing(call)
+      # TODO: Validate parameters
       %kernel = CrOpenCL::Kernel.new(self, {{call.name.stringify}})
       %gwgs = {{ call.args[1] }}
       {% for arg in call.args %}
         set_arg_dim({{ arg }}, %gwgs.size)
       {% end %}
 
+      # Pass arguments to the kernel. This has to be done with a macro - set_arguments will
+      # pollute the variables into union types, and this has effects later down the line
+      # that inject junk data into the kernel.
       {% for idx in (4...call.args.size) %}
         %kernel.set_argument({{ idx - 4 }}, {{ call.args[idx] }})
       {% end %}

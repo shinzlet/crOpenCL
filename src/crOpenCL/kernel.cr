@@ -19,6 +19,9 @@ module CrOpenCL
 
     def set_argument(index : Int32, value)
       if value.responds_to?(:to_unsafe)
+        # Seth note - I think the best way to test this is to create a kernel and set its arguments within a scope,
+        # then leave that scope (making sure that the arguments were defined in the scope). Once out of the scope, 
+        # calling the kernel might cause problems if the GC freed those arguments when leaving the scope
         val = value.to_unsafe # Need to do reference counting on this -- otherwise the GC could destroy value before the kernel is run
         puts "unsafe"
         puts typeof(value)
@@ -54,6 +57,7 @@ module CrOpenCL
       ewl_size = event_wait_list.size
       ewl = ewl_size > 0 ? event_wait_list.map(&.to_unsafe_value).to_unsafe : Pointer(Pointer(Void)).null
       err = LibOpenCL.clEnqueueNDRangeKernel(queue, @kernel, dim, nil, gws, lws, ewl_size, ewl, event)
+      puts LibOpenCL::Error.new(err)
       raise CLError.new("clEnqueueNDRangeKernel failed.") unless err == LibOpenCL::CL_SUCCESS
     end
 
